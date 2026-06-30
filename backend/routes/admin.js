@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Apply admin auth to all routes below
 router.use(adminAuth);
