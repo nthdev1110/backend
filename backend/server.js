@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 10000;
 // Middleware
 app.use(cors({
     origin: '*', // Cho phép tất cả các nguồn gọi API (rất tốt khi chạy frontend trên InfinityFree)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
@@ -24,7 +24,7 @@ const runMigration = require('./migrate');
 
 // Test Route
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Hunter Dev API Server is running!' });
+    res.json({ status: 'ok', message: 'MỘC LANE API Server is running!' });
 });
 
 // Dynamic Migration Route - Dễ dàng gọi qua trình duyệt để setup database!
