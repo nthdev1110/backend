@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
+const bcrypt = require('bcrypt');
 
 // Apply admin auth to all routes below
 router.use(adminAuth);
@@ -45,6 +46,56 @@ router.patch('/users/:id/balance', async (req, res) => {
         }
 
         res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// PATCH /api/admin/users/:id/role - Thay đổi quyền của người dùng
+router.patch('/users/:id/role', async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (role !== 'admin' && role !== 'user') {
+        return res.status(400).json({ error: 'Quyền không hợp lệ' });
+    }
+
+    if (parseInt(id) === req.user.id) {
+        return res.status(400).json({ error: 'Không thể tự thay đổi quyền của chính mình' });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE users SET role = $1 WHERE id = $2 RETURNING id, name, email, role`,
+            [role, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+        }
+
+        res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// PATCH /api/admin/users/:id/reset-password - Đặt lại mật khẩu về mặc định
+router.patch('/users/:id/reset-password', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const newPasswordHash = await bcrypt.hash('123456', 10);
+        const result = await pool.query(
+            `UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING id, name, email`,
+            [newPasswordHash, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+        }
+
+        res.json({ success: true, message: 'Đã đặt lại mật khẩu thành 123456' });
     } catch (err) {
         res.status(500).json({ error: 'Lỗi server' });
     }
