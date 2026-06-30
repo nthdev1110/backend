@@ -76,7 +76,7 @@ router.post('/create', authMiddleware, async (req, res) => {
         const purchases = [];
         for (const item of cartItems) {
             const licenseKey = generateFiveMLicense();
-            const downloadUrl = `https://gta5code.com/downloads/scripts/${item.product_id}/source.zip`;
+            const downloadUrl = `/scripts/${item.product_id}.zip`;
 
             await client.query(
                 `INSERT INTO order_items (order_id, product_id, license_key, price)
@@ -135,7 +135,7 @@ router.get('/', authMiddleware, async (req, res) => {
             id: `ORD${100000 + row.order_id}`,
             user_id: req.user.id,
             license_key: row.license_key,
-            download_url: `https://gta5code.com/downloads/scripts/${row.id}/source.zip`,
+            download_url: `/scripts/${row.id}.zip`,
             purchased_at: row.purchased_at,
             product: {
                 id: row.id,

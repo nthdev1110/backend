@@ -24,7 +24,7 @@ const runMigration = require('./migrate');
 
 // Test Route
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'GTA5 Scripts Store API Server is running!' });
+    res.json({ status: 'ok', message: 'Hunter Dev API Server is running!' });
 });
 
 // Dynamic Migration Route - Dễ dàng gọi qua trình duyệt để setup database!
@@ -37,12 +37,15 @@ app.get('/api/migrate', async (req, res) => {
     }
 });
 
+const adminRouter = require('./routes/admin');
+
 // Mount Routes
 app.use('/api/auth', authRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/wallet', walletRouter);
+app.use('/api/admin', adminRouter);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

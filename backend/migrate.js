@@ -109,14 +109,14 @@ async function runMigration() {
         const prodCount = await client.query('SELECT COUNT(*) FROM products');
         if (parseInt(prodCount.rows[0].count) === 0) {
             console.log('🌱 Seeding initial products...');
-            
+
             const MOCK_PRODUCTS = [
                 {
                     title: "QB-Core Advanced Job System",
                     description: "Hệ thống nghề nghiệp nâng cao toàn diện cho server FiveM QB-Core. Tích hợp giao diện đẹp mắt, tối ưu hiệu suất cực cao, cấu hình dễ dàng qua UI.",
                     category: "jobs",
-                    price: 350000,
-                    old_price: 500000,
+                    price: 50000,
+                    old_price: 60000,
                     badge: "HOT",
                     image: "fas fa-briefcase",
                     image_url: "",
@@ -132,7 +132,7 @@ async function runMigration() {
                     title: "Realistic Car Dealer Showroom",
                     description: "Giao diện cửa hàng bán xe 3D siêu hiện đại. Xem thông số xe trực quan, hỗ trợ lái thử, thanh toán trả góp linh hoạt và camera xoay 360 độ cực mượt.",
                     category: "vehicles",
-                    price: 450000,
+                    price: 50000,
                     old_price: 600000,
                     badge: "NEW",
                     image: "fas fa-car",
