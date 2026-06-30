@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 10000;
 // Middleware
 app.use(cors({
     origin: '*', // Cho phép tất cả các nguồn gọi API (rất tốt khi chạy frontend trên InfinityFree)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
