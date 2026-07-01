@@ -122,6 +122,72 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 // ============================================================
+// PRODUCTS MANAGEMENT
+// ============================================================
+
+// POST /api/admin/products - Thêm sản phẩm mới
+router.post('/products', async (req, res) => {
+    const { title, description, category, price, old_price, badge, image, image_url, video_url, features } = req.body;
+    
+    if (!title || !description || !category || price === undefined) {
+        return res.status(400).json({ error: 'Vui lòng điền đầy đủ các thông tin bắt buộc' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO products (title, description, category, price, old_price, badge, image, image_url, video_url, features)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             RETURNING *`,
+            [title, description, category, parseInt(price), old_price ? parseInt(old_price) : null, badge || null, image || null, image_url || null, video_url || null, JSON.stringify(features || [])]
+        );
+        res.json({ success: true, product: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// PUT /api/admin/products/:id - Sửa sản phẩm
+router.put('/products/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, description, category, price, old_price, badge, image, image_url, video_url, features } = req.body;
+
+    if (!title || !description || !category || price === undefined) {
+        return res.status(400).json({ error: 'Vui lòng điền đầy đủ các thông tin bắt buộc' });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE products 
+             SET title = $1, description = $2, category = $3, price = $4, old_price = $5, badge = $6, image = $7, image_url = $8, video_url = $9, features = $10
+             WHERE id = $11
+             RETURNING *`,
+            [title, description, category, parseInt(price), old_price ? parseInt(old_price) : null, badge || null, image || null, image_url || null, video_url || null, JSON.stringify(features || []), id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+        }
+        res.json({ success: true, product: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// DELETE /api/admin/products/:id - Xóa sản phẩm
+router.delete('/products/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// ============================================================
 // ORDERS MANAGEMENT
 // ============================================================
 
