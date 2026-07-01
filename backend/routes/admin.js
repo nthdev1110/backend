@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../db');
 const adminAuth = require('../middleware/adminAuth');
 const bcrypt = require('bcryptjs');
+const discordLogger = require('../utils/discord');
 
 // Apply admin auth to all routes below
 router.use(adminAuth);
@@ -36,17 +37,45 @@ router.patch('/users/:id/balance', async (req, res) => {
     }
 
     try {
-        const result = await pool.query(
-            `UPDATE users SET balance = $1 WHERE id = $2 RETURNING id, name, email, balance`,
-            [Math.floor(Number(balance)), id]
-        );
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            
+            const oldUserRes = await client.query('SELECT balance FROM users WHERE id = $1 FOR UPDATE', [id]);
+            if (oldUserRes.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+            }
+            
+            const oldBalance = oldUserRes.rows[0].balance;
+            const newBalance = Math.floor(Number(balance));
+            const diff = newBalance - oldBalance;
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+            const result = await client.query(
+                `UPDATE users SET balance = $1 WHERE id = $2 RETURNING id, name, email, balance`,
+                [newBalance, id]
+            );
+
+            if (diff !== 0) {
+                await client.query(
+                    `INSERT INTO transactions (user_id, type, amount, status, keyword)
+                     VALUES ($1, $2, $3, 'completed', 'Admin Update')`,
+                    [id, diff > 0 ? 'deposit' : 'payment', Math.abs(diff)]
+                );
+                
+                discordLogger.sendTopupLog(req.user.name, result.rows[0].name, result.rows[0].email, diff, newBalance);
+            }
+
+            await client.query('COMMIT');
+            res.json({ success: true, user: result.rows[0] });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
-
-        res.json({ success: true, user: result.rows[0] });
     } catch (err) {
+        console.error('Update balance error:', err);
         res.status(500).json({ error: 'Lỗi server' });
     }
 });

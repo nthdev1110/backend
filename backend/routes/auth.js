@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const authMiddleware = require('../middleware/auth');
+const discordLogger = require('../utils/discord');
 
 // Helper: generate JWT token
 function generateToken(user) {
@@ -44,6 +45,9 @@ router.post('/register', async (req, res) => {
 
         const user = result.rows[0];
         const token = generateToken(user);
+        
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        discordLogger.sendRegisterLog(user.name, user.email, ip);
 
         res.status(201).json({ token, user });
     } catch (err) {
